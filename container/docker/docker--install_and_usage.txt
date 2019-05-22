@@ -1,0 +1,359 @@
+--------- INTRO ---------
+
+## Virtualization (VM)
+
+Hardware
+	|__Host-OS
+		|__Hypervisor(type2)-(separated-resources)
+			|__Guest-OS-1
+			|	|__bin/libs
+			|		|__app-A
+			|__Guest-OS-2
+			|	|__bin/libs
+			|		|__app-A'
+			|__Guest-OS-N
+				|__bin/libs
+					|__app-B
+
+## Containers (Docker, LXC, OpenVZ)
+
+container = lightweight isolated process/ set of process
+
+Hardware
+	|__Host OS
+		|__Docker-Engine-(shared-resources)
+			|__Container-1
+			|	|__image
+			|		|__bins/libs
+			|			|__app-A
+			|			|__app-A'
+			|__Container-2
+				|__image
+					|__bins/libs
+						|__app-B
+						|__app-B'
+						|__app-C
+
+
+## Docker
+
+History: DotCloud (PaaS) --> Docker Inc
+Property:
+    - LXC overlay
+    - stateless
+    - immutable
+
+    Docker:         1 process -> 1 container
+    OpenVZ, LXC:    multiple process -> container
+
+## Docker workflow
+
+										docker-hub (image-repository)
+											^
+											|pull (get image)
+											|
+cmd ---------- docker-client ---------- docker-daemon
+					|						|
+			  stream|						|create container from image
+					|_______________________|
+
+
+--------- INSTALL ---------
+
+docs --> https://docs.docker.com/
+
+# install on Debian
+
+    Uninstall old versions
+        $ sudo apt-get remove docker docker-engine docker.io containerd runc
+
+        $ sudo apt update
+        $ sudo apt-get install apt-transport-https ca-certificates curl gnupg2 software-properties-common
+        $ curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+        $ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+        $ sudo apt update
+        $ sudo apt install docker-ce docker-ce-cli containerd.io
+        $ sudo docker run hello-world
+
+    Use docker as non-root user
+        $ sudo usermod -aG docker [your-user]
+
+# show version
+    $ docker -v
+
+# show all commands
+    $ docker
+
+# show help on a command
+    $ docker COMMAND --help
+
+--------- USAGE ---------
+
+--- REGISTRY: Docker-hub, TDR (Trusted Docker Registry)
+
+# login to docker-hub
+    $ docker login
+
+# image search
+    $ docker search [name]
+
+# download image from docke-hub
+    $ docker pull [image_name]
+
+        + official image: [image_name]
+		    ex: hello-world
+	    + unofficial or personnal image: [owner]/[image_name]
+		    ex: dockercloud/hello-world
+
+# push image to docker-hub
+
+    Create link between local image & image on docker-hub
+        $ docker tag [local_image_tag]:latest [username]/[remote_image_tag]:[version]
+        or
+        $ docker tag [container_ID] [username]/[remote_image_tag]:[version]
+
+        ex:
+        $ docker tag ocr-docker-build:latest YOUR_USERNAME/ocr-docker-build:latest
+        $ docker tag a32b8f8ef8d1 YOUR_USERNAME/ocr-docker-build:latest
+
+    Push image to docker-hub
+        $ docker push [username]/[remote_image_tag]:[version]
+
+--- local usage
+
+// STATUS
+
+# list installed images
+    $ docker image ls
+
+# show docker process running (launched container)
+    $ docker container ls
+    or
+    $ docker ps
+
+        -a: list all containers (& stopped containersi)
+
+# describe/inspect container
+    $ docker inspect [container_ID|_name]
+
+// START
+
+# run image on a container
+    $ docker run [image_name]
+
+    $ docker run -d -i --name [container_name] [image_name]
+
+        -d (--detatch): run in background
+        -i (--interactive): keep open
+        --name: assign a name to container
+
+# run image with interactive shell (bash)
+    $ docker run -it [image_name] bash
+
+        $ docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+                options:
+                    -i (--interactive: Keep STDIN open even if not attached)
+					-t (--tty: Allocate a pseudo-TTY)
+				command (to launch on image):
+                    bash (shell bash)
+                    /bin/bash
+                    /bin/sh
+
+# run image and publish port from container
+    $ docker run -p [HOST_PORT]:[CONTAINER_PORT] [image_name]
+
+                -p (--publish): Publish & map a container's port(s) to a host port
+
+# run image as daemon (on background)
+    $ docker run -p [HOST_PORT]:[CONTAINER_PORT] -d [image_name]
+
+                -d (--detach): Run container in background and print container ID
+
+# start stopped container
+    $ docker start [container_id|_name]
+
+// CONNECT
+
+# run command in running container, access to the image (mode interactive) (exec: Run a command in a running container)
+    $ docker exec -it [container_ID] /bin/sh
+
+// STOP
+
+# stop docker container
+    $ docker stop [container_ID|_name]
+
+# kill docker process
+    $ docker kill [container_ID|_name]
+
+# remove container
+    $ docker rm [container_ID|_name]
+
+        -f (--force): force removal
+        -v (--volume): remove associated volume with the container
+
+// CLEAN
+
+# clean system
+    $ docker system prune
+
+--- VOLUME
+
+# mount volume on container
+    $ docker run -d -p [HOST_PORT]:[CONTAINER_PORT] -v [HOST_DIRECTORY]:[CONTAINER_DIRECTORY] [image_name]
+
+            -v (--volume): Bind mount a volume
+
+
+--- DOCKERFILE
+
+dockerfile (docker) ~= package.json (nodejs), composer.json (php)
+
+# create dockerfile
+
+    Create directory to store the dockerfile
+	    $ mkdir [dir]
+
+    Create the Dockerfile file
+	    $ vim Dockerfile
+
+            "
+                FROM debian:9
+                RUN apt-get update -yq \
+                    && apt-get install curl gnupg -yq \
+                    && curl -sL https://deb.nodesource.com/setup_10.x | bash \
+                    && apt-get install nodejs -yq \
+                    && apt-get clean -y
+                ADD . /app/
+                WORKDIR /app
+                RUN npm install
+                EXPOSE 2368
+                VOLUME /app/logs
+                CMD npm run start
+            "
+
+Instructions:
+    - FROM [image_name]: use/pull base image
+    - RUN [cmd] : execute cmd
+    - COPY [/path/to/src_from_host] [/path/to/dest_in_image] : copy file to docker image
+    - WORKDIR [/path/to/dir] : specify working directory in the image
+    - EXPOSE [port] : expose application port in the image
+    - VOLUME [/path/to/dir] : map directory as persistent volume
+    - CMD [cmd] : default cmd to execute on start
+
+1 instruction = 1 layer = 1 container
+
+# ignore file from ADD
+    create --> .dockerignore
+        "
+            /path/to/file_to_ignore
+        "
+
+# build the image from dockerfile
+
+	$ docker build -t [tag] .
+    $ docker build -t [tag] /path/to/Dockerfile
+
+            -t (--tag): give tag name to the image
+			. (path to the directory of Dockerfile; relative or absolute)
+
+--- Export/Import image
+
+# save image to a file
+	$ sudo docker save -o /path/to/docker_image.docker docker_image:tag
+
+# load the image from file
+	$ sudo docker load /path/to/docker_image.docker
+
+
+--------- DOCKER COMPOSE ---------
+compose: multiple docker manager
+
+    Docker-compose
+        |--container-1
+        |--container-2
+        |--container-N
+
+# install
+
+    Download binary
+        $ sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+    Make binary executable
+        $ sudo chmod +x /usr/local/bin/docker-compose
+
+    Check version
+        $ sudo docker-compose --version
+
+# docker-compose file
+    create --> docker-compose.yml
+
+    "
+    version: '3'
+    services:
+      db:
+          image: mysql:5.7
+          volumes:
+              - db_data:/var/lib/mysql
+          restart: always
+          environment:
+              MYSQL_ROOT_PASSWORD: somewordpress
+              MYSQL_DATABASE: wordpress
+              MYSQL_USER: wordpress
+              MYSQL_PASSWORD: wordpress
+
+      wordpress:
+          depends_on:
+              - db
+          image: wordpress:latest
+          ports:
+              - "8000:80"
+          restart: always
+          environment:
+              WORDPRESS_DB_HOST: db:3306
+              WORDPRESS_DB_USER: wordpress
+              WORDPRESS_DB_PASSWORD: wordpress
+              WORDPRESS_DB_NAME: wordpress
+
+      volumes:
+        db_data: {}
+    "
+
+// INSTRUCTIONS
+    version: specify version to use
+    services: where all containers must be declared with a name
+        db: name of 1st container for mysql
+            image: base image
+            build: /path/to/Dockerfile
+            volumes: map volume
+            restart: restart policy (if down, restart directly)
+            environment: env vars
+        wordpress: name of 2nd container for wordpress
+            depends_on: create dependance
+            ports: expose port [HOST]:[CONTAINER]
+
+
+# docker-compose file syntax check
+    $ docker-compose config
+
+# start docker-compose stack (stack = set of containers)
+    $ docker-compose up -d
+
+        -d (--detach): run in background
+
+# check status
+    $ docker-compose ps
+
+# view docker-compose stack log
+    $ docker-compose logs -f --tail 5
+
+# stop docker-compose stack
+    $ docker-compose stop
+
+# delete docker-compose stack
+    $ docker-compose down
+
+--------- DOCKER SWARM ---------
+docker-swarm: docker clustering
+
+
