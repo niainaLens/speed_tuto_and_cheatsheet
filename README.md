@@ -10,7 +10,11 @@ GNU GENERAL PUBLIC LICENSE Version 3
 
 1. Fork it
 
-2. File formatting
+2. If no file longer exist in a category, change default.txt according to file naming and fill its content.
+
+3. You can add new category and sub-category
+
+4. File formatting
 
    - file naming: 
 
