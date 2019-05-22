@@ -1,0 +1,5 @@
+# Switching remote URLs from HTTPS to SSH
+    $ git remote set-url origin git@github.com:username/repo.git
+
+# chnage default editor
+    $ git config --global core.editor "vim"

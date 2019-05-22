@@ -1,0 +1,293 @@
+--- install & config Git ---
+
+# install
+    $ sudo apt-get install git-core git
+
+    --> config file: ~/.gitconfig
+
+# activate color
+    $ git config --global color.diff auto
+    $ git config --global color.status auto
+    $ git config --global color.branch auto
+
+# config pseudo
+    $ git config --global user.name "pseudo"
+
+# config mail
+    $ git config --global user.email me@mail.com
+
+# alias for git cmd
+    $ vim ~/.gitconfig
+        "
+       [alias]
+            ci = commit
+            co = checkout
+            st = status
+            br = branch
+        "
+
+# change default editor
+    $ git config --global core.editor "vim"
+
+--- git usage ---
+
+# initiate git on directory
+    $ git init
+
+# initiate repo as a server
+    $ git init --bare
+
+    --> create .git/ only
+
+    Connect to the server (from the client):
+    $ git clone ssh://user@[IP|domain]/path/to/git/repo
+
+# show status of the repo
+    $ git status
+
+# add file to git index
+    $ git add file.extention
+
+    add all file in the dir
+    $ git add .
+
+    add specific files
+    $ git add file1 file4 file7
+
+# commit changes
+
+    save modif with a commit
+    $ git commit -m "adding file.extention"
+
+    commit for specific files
+    $ git commit file1 file6 file9
+
+    commit all files in the index (already added)
+    $ git commit -a -m "add files & edit"
+        -a: update files in the index
+
+# show changes
+    $ git diff
+
+    diff for a file
+    $ git diff path/to/file.extension
+
+# view commit history
+    $ git log
+    "
+    commit 679930eb6866999f510b6027a67caaad5c5321a1
+    Author: niainalens <niainalens@gmail.com>
+    Date:   Thu May 2 17:22:50 2019 +0300
+
+        adding file test
+    "
+
+        -p: more details
+        --stat: less details
+
+# edit last commit message
+    $ git commit --amend
+
+# cancel commit
+
+[SOFT] (commit is removed from git, files stay edited)
+        --> need to edit files again and make new commits
+
+    HEAD: last commit
+    HEAD^: last -1
+    HEAD^^: last -2
+    HEAD~2: last -2
+
+    cancel last commit:
+    $ git reset HEAD^
+
+    cancel specific commit:
+    $ git reset [sha]
+
+[HARD] (cancel all commit & lose all changes)
+
+    reset all changes from last commit
+    $ git reset --hard HEAD^
+
+# restore edited file (non commited) on his status to last commit
+    $ git checkout file.extension
+
+# cancel adding file
+    $ git reset HEAD -- file.extension
+
+# revert change (cancel commit)
+    $ git revert [sha]
+
+# positionning on a commit
+
+    to n-commit
+    $ git checkout [commit_SHA]
+
+    to last commit
+    $ git checkout master
+
+# revert a commit, create new commit inverse of the lastest
+    $ git revert [commit_SHA]
+
+# modify message of last commit
+    $ git commit --amend -m "new message"
+
+# cancel all new changes un-commited
+    $ git reset --hard
+
+--- remote repo/ github ---
+
+remote: backup of the code
+
+# copy/clone remote repo
+    $ git clone [github_url]
+
+# push/send modif on remote repo
+    $ git push origin master
+        origin: name of the remote server where repo were cloned
+        master: branch master
+
+# get last modif from remote repo --> update your local repo
+    $ git pull origin master
+
+## switch https to ssh url
+    $ git remote set-url origin git@github.com:[username]/[project].git
+
+--- branches ---
+
+# show existing branches
+    $ git branch
+
+# list all branches in server (remote tracking branches)
+    $ git branch -r
+
+# create branch
+    $ git branch new_branch
+
+# switch to a branch
+    $ git checkout new_branch
+
+# create branch & switch to it
+    $ git checkout -b new_branch
+
+# merge modif from branch_B in branch_A
+
+    switch to branch A
+    $ git checkout branch_A
+
+    merge in A the branch B
+    $ git merge branch_B
+
+# use external merge tools
+     vimdiff, meld, opendiff, kdiff3, tkdiff, xxdiff, tortoisemerge, gvimdiff, diffuse, ecmerge, p4merge, araxis, emerge
+    $ git mergetool vimdiff
+
+# delete branch
+
+    delete with verification
+    $ git branch -d new_branch
+
+    delete without verification
+    $ git branch -D new_branch
+
+# shared branches
+
+    copy & work on a shared branches
+    $ git branch --track [local_branch] origin/[branch_on_the_server]
+
+    push on branch in the server
+    $ git push origin origin:refs/heads/[branch_name]
+
+    delete branch in the server
+    $ git push origin :heads/[branch_name]
+
+    delete remote tracking branches on client
+    $ git branch -r -d origin/[branch_name]
+
+--- team work ---
+
+# see who edited a line
+
+    list all modif line by line on a file
+    $ git blame file.extension
+
+    show details of a commit by the sha
+    $ git show 05b1233
+
+--- ignore file ---
+
+# ignore file in the dir
+    $ vim .gitignore
+        "
+        password.txt
+        conf/app.yml
+        "
+    $ git add .gitignore
+    $ git commit -am "add .gitignore file"
+
+--- avoid too many commit ---
+
+# set aside a modif (for commiting later)
+    $ git stash
+
+# get back modif set aside
+    $ git stash pop
+        pop: empty your stash of modification
+
+# keep modif in the stash
+    $ git stash apply
+
+--- TAGS ---
+
+# tag a commit
+    $ git tag [tag_name] [id_commit]
+
+# push a tag
+    $ git push --tags
+
+# delete tag
+    $ git tag -d [tag_name]
+
+--- SEARCH IN SOURCE FILES ---
+
+# find files containing a word
+    $ git grep "WORD"
+        -n: show line number
+
+--- contribute to opensources projects ---
+
+# propose a modif to a github hosted project (PR: Pull Request)
+
+    1. do a fork of the repo
+    (get the repo on your own repo)
+
+    2. clone the repo
+        $ git clone [forked_repo_url]
+
+    3. do modif
+        + create new branch
+            $ git checkout -b my-new-feature
+        + edit files
+        + commit changes
+            $ git commit -am "what I have done"
+
+    4. push to github repo (same branch)
+        $ git push origin my-new-feature
+
+    5. Propose modif to the project
+        --> Compare
+        --> Pull request
+
+README:
+message for contributor (contributing rules)
+"
+Contributing
+1- Fork it
+2- Create your feature branch (git checkout -b my-new-feature)
+3- Commit your changes (git commit -am 'Add some feature')
+4- Push to the branch (git push origin my-new-feature)
+5- Create new Pull Request
+"
+
+--- SVN to git ---
+    $ git -svn
