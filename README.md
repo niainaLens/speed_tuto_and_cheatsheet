@@ -10,11 +10,13 @@ GNU GENERAL PUBLIC LICENSE Version 3
 
 1. Fork it
 
-2. If no file longer exist in a category, change default.txt according to file naming and fill its content.
+2. Create your own branch
 
-3. You can add new category and sub-category
+3. If no file exist yet in a category, change default.txt according to file naming and fill its content.
 
-4. File formatting
+4. You can add new category and sub-category
+
+5. File formatting
 
    - file naming: 
 
@@ -100,7 +102,7 @@ GNU GENERAL PUBLIC LICENSE Version 3
            --stat: less details
    ```
 
-   
+   6. Pull request
 
 ## Author Information
 
